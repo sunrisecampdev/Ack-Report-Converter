@@ -1,3 +1,6 @@
+# Ack-Report-Converter
+Basic python script to convert shitty NetSuite reports into something more bearable for the Donation Acknowledgement mail merge
+
 # NetSuite Revenue Report Converter
 Basic python script to convert the shitty NetSuite reports to something we can actually use.
 
