@@ -1,4 +1,5 @@
 import openpyxl
+from openpyxl.styles import DEFAULT_FONT
 from os import path
 from pprint import pprint
 from donor import *
@@ -50,7 +51,7 @@ class RevenueReport:
                             "EMAIL",
                             "ALTEMAIL",
                             "DATE",
-                            "EVENT STATUS",
+                            "EVENT_STATUS",
                             "AMOUNT"
                             ]
         self.headerIndexMap = dict()
@@ -179,6 +180,9 @@ class RevenueReport:
 
 path_to_xlsx = path.abspath(path.join(path.dirname(__file__), 'newack.xlsx'))
 wb = openpyxl.load_workbook('newack.xlsx')
+
+DEFAULT_FONT.name = "Aptos Narrow"
+
 ws1 = wb['Sheet1']
 ws2 = wb.create_sheet("Sheet2")
 
