@@ -45,10 +45,6 @@ class RevenueReport:
                             ]
         self.headerIndexMap = dict()
         self.sheet2RowIndex = 2
-
-        # bibbidiasdjalsdj
-        bee = "bop"
-        print(bee)
         
     def incColIndex(self):
         self.colIndex += 1
