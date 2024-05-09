@@ -29,19 +29,29 @@ class RevenueReport:
             "FIRST_NAME" : {"name" : "First Name"},
             "LAST_NAME" : {"name" : "Last Name"},
             "DONOR" : {"name" : "Donor"},
-            "PAID": {"name" : "Paid"},
+            "PAID" : {"name" : "Paid"},
+            "ADDRESS1" : {"name" : "Address 1"},
+            "ADDRESS2" : {"name" : "Address 2"},
+            "CITY" : {"name" : "City"},
+            "STATE" : {"name" : "State"},
+            "ZIP" : {"name" : "Zip Code"},
+            "EMAIL" : {"name" : "Email"},
+            "ALTEMAIL" : {"name" : "Alt. Email"}
         })
         self.headerOrder = ["DONOR_ID",
                             "FIRST_NAME",
                             "LAST_NAME",
                             "COMPANY",
-                            "EVENT_STATUS",
-                            "ATTENDEES",
+                            "ADDRESS1",
+                            "ADDRESS2",
+                            "CITY",
+                            "STATE",
+                            "ZIP",
+                            "EMAIL",
+                            "ALTEMAIL",
                             "DATE",
-                            "SALE_TYPE",
-                            "AMOUNT",
-                            "PAID",
-                            "CONNECTION"
+                            "EVENT STATUS",
+                            "AMOUNT"
                             ]
         self.headerIndexMap = dict()
         self.sheet2RowIndex = 2
@@ -167,8 +177,8 @@ class RevenueReport:
         return
 
 
-path_to_xlsx = path.abspath(path.join(path.dirname(__file__), 'newrev.xlsx'))
-wb = openpyxl.load_workbook('newrev.xlsx')
+path_to_xlsx = path.abspath(path.join(path.dirname(__file__), 'newack.xlsx'))
+wb = openpyxl.load_workbook('newack.xlsx')
 ws1 = wb['Sheet1']
 ws2 = wb.create_sheet("Sheet2")
 
@@ -191,4 +201,4 @@ newReport.transferSheet1Rows()
 # should figure out how to overwrite previous file
 
 fixedBook = newReport.getWorkbook()
-fixedBook.save("superRevenue.xlsx")
+fixedBook.save("superAck.xlsx")
