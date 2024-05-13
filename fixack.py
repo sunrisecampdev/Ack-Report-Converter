@@ -47,11 +47,11 @@ class RevenueReport:
                             "CITY",
                             "STATE",
                             "ZIP",
+                            "EVENT_STATUS",
+                            "AMOUNT",
                             "EMAIL",
                             "ALTEMAIL",
-                            "DATE",
-                            "EVENT_STATUS",
-                            "AMOUNT"
+                            "DATE"
                             ]
         self.headerIndexMap = dict()
         self.sheet2RowIndex = 2
