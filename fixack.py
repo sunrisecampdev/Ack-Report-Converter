@@ -2,15 +2,20 @@ import openpyxl
 from os import path
 from pprint import pprint
 from donor import *
+from group import *
 
 class RevenueReport:
-    def __init__(self, workbook, sheet1, sheet2):
+    def __init__(self, workbook, sheetRaw, sheetFormat, sheetMultiple, sheetSingle, sheetNothing, sheetOpen):
         self.workbook = workbook
-        self.sheet1 = sheet1
-        self.sheet2 = sheet2
+        self.sheetRaw = sheetRaw
+        self.sheetFormat = sheetFormat
+        self.sheetMultiple = sheetMultiple
+        self.sheetSingle = sheetSingle
+        self.sheetNothing = sheetNothing
+        self.sheetOpen = sheetOpen
         self.HEADER_ROW = self.getHeaderRowIndex()-1
-        self.MAX_COL = self.sheet1.max_column+1
-        self.MAX_ROW = self.sheet1.max_row
+        self.MAX_COL = self.sheetRaw.max_column+1
+        self.MAX_ROW = self.sheetRaw.max_row
         self.colIndex = 1
         self.rowIndex = self.getHeaderRowIndex()+1
         self.headerDict = dict({
@@ -54,7 +59,7 @@ class RevenueReport:
                             "DATE"
                             ]
         self.headerIndexMap = dict()
-        self.sheet2RowIndex = 2
+        self.sheetFormatRowIndex = 2
         
     def incColIndex(self):
         self.colIndex += 1
@@ -63,7 +68,7 @@ class RevenueReport:
         self.rowIndex += 1
 
     def incSheet2RowIndex(self):
-        self.sheet2RowIndex += 1
+        self.sheetFormatRowIndex += 1
 
     def getWorkbook(self):
         return self.workbook
@@ -80,7 +85,7 @@ class RevenueReport:
     def getHeaderRowIndex(self):
         """Returns the row index of the header row"""
         counter = 0
-        for colCell in self.sheet1['A']:
+        for colCell in self.sheetRaw['A']:
             counter += 1
             if colCell.value == "Item":
                 return counter
@@ -88,13 +93,13 @@ class RevenueReport:
     def getColIndex(self, colName, headerRow, MAX_COL):
         """Returns the index of the column based on the given header column name"""
         for headerColIndex in range(1, MAX_COL):
-            if self.sheet1.cell(row=headerRow, column=headerColIndex).value == colName:
+            if self.sheetRaw.cell(row=headerRow, column=headerColIndex).value == colName:
                 return headerColIndex
             
     def getColValues(self, targetCol):
         """Returns a list containing a tuple of all values from the respective column"""
         valueList = []
-        for column in self.sheet1.iter_cols():
+        for column in self.sheetRaw.iter_cols():
             colName = column[self.HEADER_ROW].value
             if colName == targetCol:
                 for cell in column:
@@ -106,7 +111,7 @@ class RevenueReport:
         """Takes a header name and transfers that respective column over to Sheet2"""
         rowIndex = 1
         for colCellValue in colList:
-            currentCell = self.sheet2.cell(row=self.sheet2RowIndex, column=self.colIndex)
+            currentCell = self.sheetFormat.cell(row=self.sheetFormatRowIndex, column=self.colIndex)
             currentCell.value = colCellValue
             self.cellFormat(currentCell, headerName)
             self.incSheet2RowIndex()
@@ -130,7 +135,7 @@ class RevenueReport:
     def getDonorFromValues(self):
         """Creates a donor object based on the given row values"""
         while self.rowIndex < self.MAX_ROW:
-            row = self.sheet1[self.rowIndex]
+            row = self.sheetRaw[self.rowIndex]
             # print(row[0].value)
             self.incRowIndex()
         return
@@ -140,16 +145,16 @@ class RevenueReport:
         Also writes the Donor object as a new line into Sheet2"""
         # use row[colindex].value to get the value
 
-        for row in self.sheet1.iter_rows(min_row=self.HEADER_ROW+2, max_row=self.MAX_ROW):
+        for row in self.sheetRaw.iter_rows(min_row=self.HEADER_ROW+2, max_row=self.MAX_ROW):
             # If there is a blank in the first column, then skip
             if not row[1].value:
                 continue
+            
             cellValues = []
             for colindex in range(1, self.MAX_COL):
                 cellValues.append(row[colindex].value)
 
             newDonor = Donor(cellValues, self.headerIndexMap, self.headerDict, self.headerOrder)
-
             # call method to transfer Donor object into new line on sheet2
             self.transferDonor(newDonor)
 
@@ -161,7 +166,7 @@ class RevenueReport:
         """Takes a donor object and writes each property value as a new line on Sheet2"""
         colIndex = 1
         for header in self.headerOrder:
-            currentCell = self.sheet2.cell(row=self.sheet2RowIndex, column=colIndex)
+            currentCell = self.sheetFormat.cell(row=self.sheetFormatRowIndex, column=colIndex)
             currentDonorValue = donor.properties[header]
             currentCell.value = currentDonorValue
             self.cellFormat(currentCell, header)
@@ -181,7 +186,7 @@ path_to_xlsx = path.abspath(path.join(path.dirname(__file__), 'newack.xlsx'))
 wb = openpyxl.load_workbook('newack.xlsx')
 
 ws1 = wb['Sheet1']
-ws2 = wb.create_sheet("Sheet2")
+ws2 = wb.create_sheet("Formatted")
 
 newReport = RevenueReport(wb, ws1, ws2)
 newReport.mapColIndices()
