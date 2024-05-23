@@ -1,5 +1,5 @@
 # Ack-Report-Converter
-Basic python script to convert shitty NetSuite reports into something more bearable for the Donation Acknowledgement mail merge
+Basic python script to convert the dreadful NetSuite reports into something more bearable for the Donation Acknowledgement mail merge
 
 # Requirements
 Python 3.12.3+
