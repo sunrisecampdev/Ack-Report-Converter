@@ -2,7 +2,6 @@ import openpyxl
 from os import path
 from pprint import pprint
 from donor import *
-from group import *
 
 class RevenueReport:
     def __init__(self, workbook, sheetRaw, sheetFormat, sheetMultiple, sheetSingle, sheetNothing, sheetOpen):
@@ -53,6 +52,7 @@ class RevenueReport:
                             "STATE",
                             "ZIP",
                             "EVENT_STATUS",
+                            "SALE_TYPE",
                             "AMOUNT",
                             "EMAIL",
                             "ALTEMAIL",
@@ -77,9 +77,9 @@ class RevenueReport:
         """Maps each header column to their respective list index"""
         headerIndex = self.getHeaderRowIndex()
         for currentIndex in range(1, self.MAX_COL+1):
-            if (ws1.cell(row=headerIndex, column=currentIndex).value is None):
+            if (wsraw.cell(row=headerIndex, column=currentIndex).value is None):
                 continue
-            self.headerIndexMap[ws1.cell(row=headerIndex, column=currentIndex).value] = currentIndex - 2
+            self.headerIndexMap[wsraw.cell(row=headerIndex, column=currentIndex).value] = currentIndex - 2
         return
         
     def getHeaderRowIndex(self):
@@ -177,7 +177,7 @@ class RevenueReport:
         """Copies to Sheet2 each header respective to the headers from headerOrder"""
         colindex, rowindex = 1, 1
         for header in self.headerOrder:
-            ws2.cell(row=rowindex, column=colindex, value=self.headerDict[header]["name"])
+            wsformat.cell(row=rowindex, column=colindex, value=self.headerDict[header]["name"])
             colindex += 1
         return
 
@@ -185,10 +185,14 @@ class RevenueReport:
 path_to_xlsx = path.abspath(path.join(path.dirname(__file__), 'newack.xlsx'))
 wb = openpyxl.load_workbook('newack.xlsx')
 
-ws1 = wb['Sheet1']
-ws2 = wb.create_sheet("Formatted")
+wsraw = wb['Sheet1']
+wsformat = wb.create_sheet("Formatted")
+wsmultiple = wb.create_sheet("Multiple")
+wssingle = wb.create_sheet("Single")
+wsnothing = wb.create_sheet("Nothing")
+wsopen = wb.create_sheet("Open")
 
-newReport = RevenueReport(wb, ws1, ws2)
+newReport = RevenueReport(wb, wsraw, wsformat, wsmultiple, wssingle, wsnothing, wsopen)
 newReport.mapColIndices()
 
 # print(newReport.headerIndexMap)
