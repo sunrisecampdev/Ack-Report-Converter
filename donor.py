@@ -1,4 +1,5 @@
 from pprint import pprint
+from eventdict import *
 
 class Donor:
     def __init__(self, rowCells, indexMap, headerDict, headerOrder):
@@ -12,12 +13,22 @@ class Donor:
     def incRowIndex(self):
         self.rowIndex += 1
 
+    def processStatus(self, eventStatus): 
+        if eventStatus in event_dict:
+            return event_dict[eventStatus]
+        return eventStatus
+
     def getValueFromKey(self, key, rowCells):
         if (key == "FIRST_NAME") or (key == "LAST_NAME") or (key == "PAID"):
             return
-        insideHeaderDict = self.headerDict[key]
-        index = self.indexMap[insideHeaderDict["name"]]
+        
+        headerKeyValuePair = self.headerDict[key]
+
+        index = self.indexMap[headerKeyValuePair["name"]]
         value = rowCells[index]
+
+        if (key == "EVENT_STATUS"):
+            return self.processStatus(value)
         return value
     
     def getNames(self, rowCells):

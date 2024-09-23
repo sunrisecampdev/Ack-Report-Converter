@@ -42,7 +42,7 @@ class RevenueReport:
             "EMAIL" : {"name" : "Email"},
             "ALTEMAIL" : {"name" : "Alt. Email"}
         })
-        self.headerOrder = ["DONOR_ID",
+        self.headerOrder = ("DONOR_ID",
                             "FIRST_NAME",
                             "LAST_NAME",
                             "COMPANY",
@@ -57,7 +57,7 @@ class RevenueReport:
                             "EMAIL",
                             "ALTEMAIL",
                             "DATE"
-                            ]
+                            )
         self.headerIndexMap = dict()
         self.sheetFormatRowIndex = 2
         
@@ -79,6 +79,7 @@ class RevenueReport:
         for currentIndex in range(1, self.MAX_COL+1):
             if (wsraw.cell(row=headerIndex, column=currentIndex).value is None):
                 continue
+            # pprint("current index is", self.headerIndexMap[wsraw.cell(row=headerIndex, column=currentIndex).value])
             self.headerIndexMap[wsraw.cell(row=headerIndex, column=currentIndex).value] = currentIndex - 2
         return
         
@@ -146,7 +147,6 @@ class RevenueReport:
         # use row[colindex].value to get the value
 
         for row in self.sheetRaw.iter_rows(min_row=self.HEADER_ROW+2, max_row=self.MAX_ROW):
-            # If there is a blank in the first column, then skip
             if not row[1].value:
                 continue
             
@@ -173,13 +173,15 @@ class RevenueReport:
             colIndex += 1
         self.incSheet2RowIndex()
 
-    def transferRowHeaders(self):
+    def transferRowHeaders(self, worksheet):
         """Copies to Sheet2 each header respective to the headers from headerOrder"""
         colindex, rowindex = 1, 1
         for header in self.headerOrder:
-            wsformat.cell(row=rowindex, column=colindex, value=self.headerDict[header]["name"])
+            worksheet.cell(row=rowindex, column=colindex, value=self.headerDict[header]["name"])
             colindex += 1
         return
+    
+
 
 
 path_to_xlsx = path.abspath(path.join(path.dirname(__file__), 'newack.xlsx'))
@@ -196,10 +198,13 @@ newReport = RevenueReport(wb, wsraw, wsformat, wsmultiple, wssingle, wsnothing, 
 newReport.mapColIndices()
 
 # print(newReport.headerIndexMap)
-
 # newReport.transferRowHeaders()
 
-newReport.transferRowHeaders()
+newReport.transferRowHeaders(wsformat)
+newReport.transferRowHeaders(wsmultiple)
+newReport.transferRowHeaders(wssingle)
+newReport.transferRowHeaders(wsnothing)
+newReport.transferRowHeaders(wsopen)
 newReport.transferSheet1Rows()
 
 # test for getting the row headers
@@ -209,6 +214,13 @@ newReport.transferSheet1Rows()
 
 # save all work as a new file
 # should figure out how to overwrite previous file
+
+
+
+
+
+
+
 
 fixedBook = newReport.getWorkbook()
 fixedBook.save("superAck.xlsx")
