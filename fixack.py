@@ -60,6 +60,14 @@ class RevenueReport:
                             )
         self.headerIndexMap = dict()
         self.sheetFormatRowIndex = 2
+
+        self.mapColIndices()
+        self.transferRowHeaders(wsformat)
+        self.transferRowHeaders(wsmultiple)
+        self.transferRowHeaders(wssingle)
+        self.transferRowHeaders(wsnothing)
+        self.transferRowHeaders(wsopen)
+        self.transferSheet1Rows()
         
     def incColIndex(self):
         self.colIndex += 1
@@ -181,9 +189,6 @@ class RevenueReport:
             colindex += 1
         return
     
-
-
-
 path_to_xlsx = path.abspath(path.join(path.dirname(__file__), 'newack.xlsx'))
 wb = openpyxl.load_workbook('newack.xlsx')
 
@@ -195,31 +200,23 @@ wsnothing = wb.create_sheet("Nothing")
 wsopen = wb.create_sheet("Open")
 
 newReport = RevenueReport(wb, wsraw, wsformat, wsmultiple, wssingle, wsnothing, wsopen)
-newReport.mapColIndices()
+# newReport.mapColIndices()
 
 # print(newReport.headerIndexMap)
 # newReport.transferRowHeaders()
 
-newReport.transferRowHeaders(wsformat)
-newReport.transferRowHeaders(wsmultiple)
-newReport.transferRowHeaders(wssingle)
-newReport.transferRowHeaders(wsnothing)
-newReport.transferRowHeaders(wsopen)
-newReport.transferSheet1Rows()
+# newReport.transferRowHeaders(wsformat)
+# newReport.transferRowHeaders(wsmultiple)
+# newReport.transferRowHeaders(wssingle)
+# newReport.transferRowHeaders(wsnothing)
+# newReport.transferRowHeaders(wsopen)
+# newReport.transferSheet1Rows()
+
 
 # test for getting the row headers
 
 # for x in range(1, len(newReport.headerOrder)+1):
 #     print(ws2.cell(row=1,column=x).value)
-
-# save all work as a new file
-# should figure out how to overwrite previous file
-
-
-
-
-
-
 
 
 fixedBook = newReport.getWorkbook()
