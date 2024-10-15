@@ -1,6 +1,7 @@
 import openpyxl
+import bisect
+import pprint
 from os import path
-from pprint import pprint
 from donor import *
 
 class RevenueReport:
@@ -60,6 +61,10 @@ class RevenueReport:
                             )
         self.headerIndexMap = dict()
         self.sheetFormatRowIndex = 2
+        self.sheetMultipleRowIndex = 2
+        self.sheetSingleRowIndex = 2
+        self.tempRowIndex = 2
+        self.sortedDonors = []
 
         self.mapColIndices()
         self.transferRowHeaders(wsformat)
@@ -72,10 +77,24 @@ class RevenueReport:
     def incColIndex(self):
         self.colIndex += 1
 
-    def incRowIndex(self):
-        self.rowIndex += 1
+    def incRowIndex(self, rowindex):
+        """Takes a string for rowindex and increments the respective counter for the RevenueReport class"""
+        if rowindex == "format":
+            self.sheetFormatRowIndex += 1
+        elif rowindex == "multiple":
+            self.sheetMultipleRowIndex += 1
+        elif rowindex == "single":
+            self.sheetSingleRowIndex += 1
 
-    def incSheet2RowIndex(self):
+    def getRowIndex(self, rowindexname):
+        if rowindexname == "format":
+            return self.sheetFormatRowIndex
+        elif rowindexname == "multiple":
+            return self.sheetMultipleRowIndex
+        elif rowindexname == "single":
+            return self.sheetSingleRowIndex
+
+    def incFormattedRowIndex(self):
         self.sheetFormatRowIndex += 1
 
     def getWorkbook(self):
@@ -98,6 +117,11 @@ class RevenueReport:
             counter += 1
             if colCell.value == "Item":
                 return counter
+            
+    def getColBasedOnHeader(self, header):
+        """Returns the column index value based on the actual given header. Donor ID would give 1.
+        Uses the actual header values from the spreadsheet, not the constants in the dict"""
+        return self.headerIndexMap[header]
         
     def getColIndex(self, colName, headerRow, MAX_COL):
         """Returns the index of the column based on the given header column name"""
@@ -117,13 +141,12 @@ class RevenueReport:
         return valueList
 
     def transferCol(self, colList, headerName):
-        """Takes a header name and transfers that respective column over to Sheet2"""
-        rowIndex = 1
+        """Takes a header name and transfers that respective column over to the Formatted tab"""
         for colCellValue in colList:
             currentCell = self.sheetFormat.cell(row=self.sheetFormatRowIndex, column=self.colIndex)
             currentCell.value = colCellValue
             self.cellFormat(currentCell, headerName)
-            self.incSheet2RowIndex()
+            self.incRowIndex("format")
         self.incColIndex()
         return
     
@@ -135,23 +158,23 @@ class RevenueReport:
             cell.number_format = "$#,##0.00"
 
     def transferSheet1Cols(self):
-        """Copies to Sheet2 from Sheet1 each column respective to the headers from headerOrder"""
+        """Copies to Formatted tab from Sheet1 each column respective to the headers from headerOrder"""
         for header in self.headerOrder:
             currentCol = self.getColValues(self.headerDict[header]["name"])
             self.transferCol(currentCol, header)
         return
     
-    def getDonorFromValues(self):
-        """Creates a donor object based on the given row values"""
-        while self.rowIndex < self.MAX_ROW:
-            row = self.sheetRaw[self.rowIndex]
-            # print(row[0].value)
-            self.incRowIndex()
-        return
+    # def getDonorFromValues(self):
+    #     """Creates a donor object based on the given row values"""
+    #     while self.rowindex < self.MAX_ROW:
+    #         row = self.sheetRaw[self.rowindex]
+    #         # print(row[0].value)
+    #         self.incRowIndex()
+    #     return
 
     def transferSheet1Rows(self):
         """Iterates through each row line item after the header in Sheet1 creates a Donor object
-        Also writes the Donor object as a new line into Sheet2"""
+        Also writes the Donor object as a new line into the Formatted tab"""
         # use row[colindex].value to get the value
 
         for row in self.sheetRaw.iter_rows(min_row=self.HEADER_ROW+2, max_row=self.MAX_ROW):
@@ -163,23 +186,37 @@ class RevenueReport:
                 cellValues.append(row[colindex].value)
 
             newDonor = Donor(cellValues, self.headerIndexMap, self.headerDict, self.headerOrder)
-            # call method to transfer Donor object into new line on sheet2
-            self.transferDonor(newDonor)
+            # call method to transfer Donor object into new line on Formatted tab
+            self.transferDonor(newDonor, self.sheetFormat, "format")
+
+            self.incFormattedRowIndex()
+
+            # insert the newly created Donor object into the sorted list
+            self.insortDonor(newDonor)
 
             # if cellValues is not None:
             #     pprint(cellValues)
+
+        # after all the rows from Sheet1 are transferred over and the donors are sorted in their own list
+        self.transferSortedDonorsToTab(self.sheetMultiple, "multiple")
         return
     
-    def transferDonor(self, donor):
-        """Takes a donor object and writes each property value as a new line on Sheet2"""
+    def transferSortedDonorsToTab(self, tab, rowindex):
+        """Takes the sorted donor list and writes them all to the given tab"""
+        for donor in self.sortedDonors:
+            print(donor.mainid, donor.properties["FIRST_NAME"])
+            self.transferDonor(donor, tab, rowindex)
+            self.incRowIndex(rowindex)
+    
+    def transferDonor(self, donor, tab, rowindex):
+        """Takes a donor object and writes each property value as a new line on the given tab"""
         colIndex = 1
         for header in self.headerOrder:
-            currentCell = self.sheetFormat.cell(row=self.sheetFormatRowIndex, column=colIndex)
+            currentCell = tab.cell(row=self.getRowIndex(rowindex), column=colIndex)
             currentDonorValue = donor.properties[header]
             currentCell.value = currentDonorValue
             self.cellFormat(currentCell, header)
             colIndex += 1
-        self.incSheet2RowIndex()
 
     def transferRowHeaders(self, worksheet):
         """Copies to Sheet2 each header respective to the headers from headerOrder"""
@@ -188,6 +225,12 @@ class RevenueReport:
             worksheet.cell(row=rowindex, column=colindex, value=self.headerDict[header]["name"])
             colindex += 1
         return
+    
+    def insortDonor(self, donor):
+        """Takes a donor object and insorts into the sorted donors list"""
+        bisect.insort_left(self.sortedDonors, donor, key=lambda d: (int(d.mainid), int(d.subid)))
+        return
+        
     
 path_to_xlsx = path.abspath(path.join(path.dirname(__file__), 'newack.xlsx'))
 wb = openpyxl.load_workbook('newack.xlsx')
@@ -199,25 +242,33 @@ wssingle = wb.create_sheet("Single")
 wsnothing = wb.create_sheet("Nothing")
 wsopen = wb.create_sheet("Open")
 
-newReport = RevenueReport(wb, wsraw, wsformat, wsmultiple, wssingle, wsnothing, wsopen)
-# newReport.mapColIndices()
+superReport = RevenueReport(wb, wsraw, wsformat, wsmultiple, wssingle, wsnothing, wsopen)
+# superReport.mapColIndices()
 
-# print(newReport.headerIndexMap)
-# newReport.transferRowHeaders()
+# print(superReport.headerIndexMap)
+# superReport.transferRowHeaders()
 
-# newReport.transferRowHeaders(wsformat)
-# newReport.transferRowHeaders(wsmultiple)
-# newReport.transferRowHeaders(wssingle)
-# newReport.transferRowHeaders(wsnothing)
-# newReport.transferRowHeaders(wsopen)
-# newReport.transferSheet1Rows()
+# superReport.transferRowHeaders(wsformat)
+# superReport.transferRowHeaders(wsmultiple)
+# superReport.transferRowHeaders(wssingle)
+# superReport.transferRowHeaders(wsnothing)
+# superReport.transferRowHeaders(wsopen)
+# superReport.transferSheet1Rows()
 
 
 # test for getting the row headers
 
-# for x in range(1, len(newReport.headerOrder)+1):
+# for x in range(1, len(superReport.headerOrder)+1):
 #     print(ws2.cell(row=1,column=x).value)
 
 
-fixedBook = newReport.getWorkbook()
+# SORTED LIST CREATED AT THIS POINT
+# NOW DO PROCESSING
+
+# for donor in superReport.sortedDonors:
+#     print("DONOR_ID:", donor.properties["DONOR_ID"])
+#     print("LAST_NAME:", donor.properties["LAST_NAME"])
+
+
+fixedBook = superReport.getWorkbook()
 fixedBook.save("superAck.xlsx")

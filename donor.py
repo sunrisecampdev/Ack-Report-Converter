@@ -5,6 +5,8 @@ class Donor:
     def __init__(self, rowCells, indexMap, headerDict, headerOrder):
         self.rowIndex = 0
         self.properties = dict()
+        self.mainid = 0
+        self.subid = 0
         self.indexMap = indexMap
         self.headerDict = headerDict
         self.headerOrder = headerOrder
@@ -68,6 +70,16 @@ class Donor:
 
         return {"first" : firstName, "last" : lastName}
     
+    def getDonorID(self, donorid):
+        """Takes a donor id string and returns the main donor number without sub donor designation"""
+        if ":" in donorid:
+            ids = donorid.split(":")
+            self.mainid = ids[0]
+            self.subid = ids[1]
+        else:
+            self.mainid = donorid
+        return
+    
     def getCompany(self, rowCells):
         """Additional processing for sub donors to get the company name if there is none"""
         donorIDIndex = self.indexMap[self.headerDict["DONOR_ID"]["name"]]
@@ -119,6 +131,8 @@ class Donor:
         """Instantiates the respective Donor properties based on the list of row cell values"""
         # Fills in property values based on raw cell data
         for header in self.headerOrder:
+            if header == "DONOR_ID":
+                self.getDonorID(self.getValueFromKey(header, rowCells))
             self.properties[header] = self.getValueFromKey(header, rowCells)
 
         # Processes spouse and primary names and adjusts first/last names accordingly
