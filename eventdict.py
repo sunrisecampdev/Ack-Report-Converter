@@ -2,6 +2,8 @@ from collections import defaultdict
 
 event_dict = defaultdict(list)
 
+event_dict["Send a Child to Camp"] = "Send a Child to Camp Donation"
+
 event_dict["Cards - Cards or Games & Lunch"] = "Cards or Games & Lunch Ticket"
 event_dict["Cards - Cards or Games, Lunch & Dinner"] = "Cards or Games, Lunch & Dinner Ticket"
 
@@ -19,3 +21,9 @@ event_dict["Journal Ad - Bronze"] = "Bronze Journal Ad"
 event_dict["Sponsor - Gold"] = "Gold Sponsor"
 event_dict["Sponsor - Silver"] = "Silver Sponsor"
 event_dict["Sponsor - Bronze"] = "Bronze Sponsor"
+
+# Dare to Dream 
+event_dict["Sponsor - Benefactor"] = "Benefactor Sponsor"
+event_dict["Sponsor - Leadership"] = "Leadership Sponsor"
+event_dict["Sponsor - Patron"] = "Patron Sponsor"
+event_dict["Sponsor - Dream"] = "Dream Sponsor"
